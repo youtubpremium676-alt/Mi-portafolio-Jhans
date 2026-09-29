@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Tres en Raya</title><link rel="stylesheet" href="../style.css"></head>
+<body><main><section><div class="card">
+<h2>Tres en Raya</h2>
+<p>Elige cómo quieres jugar:</p>
+<div class="btns" style="justify-content:flex-start">
+<button class="btn" onclick="start('amigo')">👥 Contra un amigo</button>
+<button class="btn secondary" onclick="start('maquina')">🤖 Contra la máquina</button>
+</div>
+<p id="turno">Selecciona un modo para comenzar.</p>
+<div id="board" style="display:grid;grid-template-columns:repeat(3,90px);gap:8px;margin:20px 0"></div>
+<button class="btn secondary" onclick="reset()">Reiniciar</button>
+</div><a class="back" href="../proyectos.html">← Volver a proyectos</a></section></main>
+<script>
+let cells=Array(9).fill(''),p='X',mode=null,over=false;
+function start(m){mode=m;reset()}
+function draw(){
+ const b=document.getElementById('board');b.innerHTML='';
+ cells.forEach((v,i)=>{let x=document.createElement('button');x.textContent=v||' ';
+ x.style.cssText='height:90px;font-size:2rem;background:#1e293b;color:white;border:1px solid #475569;border-radius:10px;cursor:pointer';
+ x.onclick=()=>play(i);b.appendChild(x)});
+ document.getElementById('turno').textContent=over?'Juego terminado':mode?('Turno: '+p):'Selecciona un modo';
+}
+function play(i){
+ if(!mode||cells[i]||over||(mode==='maquina'&&p==='O'))return;
+ cells[i]=p;
+ if(win()){over=true;document.getElementById('turno').textContent='Ganó '+p;draw();return}
+ if(cells.every(Boolean)){over=true;document.getElementById('turno').textContent='Empate';draw();return}
+ p=p==='X'?'O':'X';draw();
+ if(mode==='maquina'&&p==='O')setTimeout(machine,350);
+}
+function machine(){
+ if(over)return;
+ let empty=cells.map((v,i)=>v?null:i).filter(i=>i!==null);
+ let move=bestMove(empty);cells[move]='O';
+ if(win()){over=true}else if(cells.every(Boolean)){over=true}else p='X';
+ draw();
+ if(over)document.getElementById('turno').textContent=winFor('O')?'Ganó la máquina':'Empate';
+}
+function bestMove(empty){
+ for(let i of empty){cells[i]='O';if(winFor('O')){cells[i]='';return i}cells[i]=''}
+ for(let i of empty){cells[i]='X';if(winFor('X')){cells[i]='';return i}cells[i]=''}
+ if(empty.includes(4))return 4;
+ return empty[Math.floor(Math.random()*empty.length)];
+}
+function win(){return winFor(p)}
+function winFor(q){return [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]].some(a=>a.every(i=>cells[i]===q))}
+function reset(){cells=Array(9).fill('');p='X';over=false;draw()}
+draw();
+</script></body></html>
